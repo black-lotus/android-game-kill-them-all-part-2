@@ -43,7 +43,7 @@ public class BarView {
         paint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(getTime(), width / 2, height - 42, paint);
         paint.setTextAlign(Paint.Align.LEFT);
-        canvas.drawText("ANGLE : " + goodGuy, 10, height - 42, paint);
+        canvas.drawText("ANGEL : " + goodGuy, 10, height - 42, paint);
         paint.setTextAlign(Paint.Align.RIGHT);
         canvas.drawText("EVIL : " + badGuy, width-10, height - 42, paint);
     }
