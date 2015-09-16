@@ -42,6 +42,14 @@ public class GameView extends SurfaceView {
     private BarView barView;
     public static final int BAR_HEIGHT = 120;
 
+    private GameOverView gameOverView;
+    private boolean gameOver = false;
+    private boolean isComplete = false;
+
+    private int level = 1;
+    private final int numbers = 3;
+    private int numberOfGuy = 0;
+
     public GameView(Context context) {
         super(context);
 
@@ -51,6 +59,8 @@ public class GameView extends SurfaceView {
         // get thread
         gameLoopThread = new GameLoopThread(this);
 
+        numberOfGuy = numbers * level;
+
         // register callback
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -59,6 +69,9 @@ public class GameView extends SurfaceView {
                 createBarView();
                 createSpaceDust();
                 createSprites();
+                gameOverView = new GameOverView(getWidth(), getHeight());
+                isComplete = true;
+
                 gameLoopThread.setRunning(true);
                 gameLoopThread.start();
             }
@@ -103,24 +116,32 @@ public class GameView extends SurfaceView {
             spaceDust.onDraw(canvas);
         }
 
-        // Draw the blood
-        for (int i = temps.size() - 1; i >= 0; i--) {
-            temps.get(i).onDraw(canvas);
-        }
+        // prevent canvas drawing when game is over
+        if (gameOver == false) {
+            // Draw the blood
+            for (int i = temps.size() - 1; i >= 0; i--) {
+                temps.get(i).onDraw(canvas);
+            }
 
-        // Draw the guys
-        for (Sprite sprite : sprites) {
-            sprite.onDraw(canvas);
-        }
+            // Draw the guys
+            if (!sprites.isEmpty()) {
+                for (Sprite sprite : sprites) {
+                    sprite.onDraw(canvas);
+                }
+            }
 
-        // Draw bar
-        barView.onDraw(canvas);
+            // Draw bar
+            barView.onDraw(canvas);
+        } else {
+            gameOverView.setScore(barView.getGoodGuy(), barView.getBadGuy(), numberOfGuy);
+            gameOverView.onDraw(canvas);
+        }
     }
 
     private void createBarView() {
         barView = new BarView(0, 0, getWidth(), BAR_HEIGHT);
-        barView.setBadGuy(30);
-        barView.setGoodGuy(30);
+        barView.setBadGuy(numberOfGuy);
+        barView.setGoodGuy(numberOfGuy);
     }
 
     private void createSpaceDust() {
@@ -137,17 +158,15 @@ public class GameView extends SurfaceView {
         int[] badResources = {R.drawable.bad1, R.drawable.bad2, R.drawable.bad3, R.drawable.bad4, R.drawable.bad5, R.drawable.bad6};
         int goodResourcesLength = goodResources.length;
         int badResourcesLength = badResources.length;
-        int numGood = 30;
-        int numBad = 30;
 
         Random rnd = new Random();
 
-        for (int i = 0; i < numGood; i++) {
+        for (int i = 0; i < numberOfGuy; i++) {
             int goodResourceIndex = rnd.nextInt(goodResourcesLength - 1);
             sprites.add(createSprite(goodResources[goodResourceIndex], true));
         }
 
-        for (int i = 0; i < numBad; i++) {
+        for (int i = 0; i < numberOfGuy; i++) {
             int badResourceIndex = rnd.nextInt(badResourcesLength - 1);
             sprites.add(createSprite(badResources[badResourceIndex], false));
         }
@@ -158,10 +177,29 @@ public class GameView extends SurfaceView {
         return new Sprite(this, bmp, goodGuy);
     }
 
+    private void restartGame() {
+        temps.clear();
+        sprites.clear();
+
+        numberOfGuy = numbers * level;
+
+        createBarView();
+        createSprites();
+
+        gameOver = false;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
         if (System.currentTimeMillis() - lastClick > 300) {
             lastClick = System.currentTimeMillis();
+
+            if (gameOver) {
+                // restart the game
+                restartGame();
+            }
+
             float x = event.getX();
             float y = event.getY();
             synchronized (getHolder()) {
@@ -177,6 +215,18 @@ public class GameView extends SurfaceView {
                         } else {
                             soundPool.play(badGuyScream, 1, 1, 0, 0, 1);
                             barView.setBadGuy( barView.getBadGuy() - 1 );
+                        }
+
+                        // check win or lose
+                        if (barView.getBadGuy() <= 0) {
+                            // win
+                            gameOver = true;
+                            level++;
+                        }
+
+                        if (barView.getGoodGuy() <= 0) {
+                            // lose
+                            gameOver = true;
                         }
 
                         break;

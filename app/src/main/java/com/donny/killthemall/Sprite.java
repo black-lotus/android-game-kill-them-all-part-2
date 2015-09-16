@@ -48,13 +48,13 @@ public class Sprite {
 
     private int getAnimationRow() {
         double math = Math.atan2(xSpeed, ySpeed);
-        System.out.println("1. math ("+ xSpeed +", "+ ySpeed +") => " + math);
+        // System.out.println("1. math ("+ xSpeed +", "+ ySpeed +") => " + math);
         double pi = Math.PI / 2;
-        System.out.println("2. pi => " + pi);
+        // System.out.println("2. pi => " + pi);
         double dirDouble = (math / pi + 2);
-        System.out.println("3. dirDouble => " + dirDouble);
+        // System.out.println("3. dirDouble => " + dirDouble);
         int direction = (int) Math.round(dirDouble) % BMP_ROWS;
-        System.out.println("4. direction => " + direction);
+        // System.out.println("4. direction => " + direction);
         return DIRECTION_TO_ANIMATION_MAP[direction];
     }
 
@@ -81,7 +81,7 @@ public class Sprite {
         int srcX = currentFrame * width;
         int animationRow = getAnimationRow();
         int srcY = animationRow * height;
-        System.out.println("5. srcY ("+ animationRow +", "+ height +") => " + srcY);
+        // System.out.println("5. srcY ("+ animationRow +", "+ height +") => " + srcY);
         Rect src = new Rect(srcX, srcY, srcX + width, srcY + height);
         Rect dst = new Rect(x, y, x + width, y + height);
         canvas.drawBitmap(bmp, src, dst, null);
